@@ -1,10 +1,13 @@
 import 'dart:ui';
-
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'components.dart';
+import 'package:taskr/tasks.dart';
+import 'Login.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(MyApp());
 }
 
@@ -12,37 +15,31 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
       theme: ThemeData(
           primarySwatch: Colors.blue,
           inputDecorationTheme: const InputDecorationTheme(
             labelStyle: TextStyle(color: Colors.black),
             hintStyle: TextStyle(color: Colors.black),
           )),
-      home: MyHomePage(),
+      home: _handleauth(),
     );
   }
 }
 
-class MyHomePage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
-    double height = MediaQuery.of(context).size.height;
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        body: Container(
-          color: Colors.white,
-          child: Column(
-            children: [
-              Topbar(height: height, width: width),
-              MiddleBody(),
-              BottomBar(height: height, width: width)
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+Widget _handleauth() {
+  return StreamBuilder(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (BuildContext context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(
+            child: Text('waiting'),
+          );
+        } else {
+          if (snapshot.hasData) {
+            return MyHomePage();
+          } else {
+            return LoginScreen();
+          }
+        }
+      });
 }

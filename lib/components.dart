@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -16,38 +17,35 @@ class Topbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
       height: height * 0.1,
-      padding: EdgeInsets.all(10),
+      padding: EdgeInsets.symmetric(horizontal: 15),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            'Tasks',
-            style: GoogleFonts.montserratAlternates(
-                textStyle: TextStyle(
-              fontSize: 44,
-              color: Colors.black,
-              fontWeight: FontWeight.w500,
-            )),
-          ),
           Container(
+            padding: EdgeInsets.symmetric(horizontal: 7),
             decoration: BoxDecoration(
               color: Colors.black,
+              border: Border.all(width: 3),
               borderRadius: BorderRadius.all(Radius.circular(20)),
             ),
-            width: width * 0.3,
-            height: height * 0.05,
-            child: Center(
-              child: Text('6 Jan',
-                  style: GoogleFonts.montserrat(
-                    textStyle: TextStyle(
-                      color: Colors.white,
-                      fontSize: 30,
-                    ),
-                  )),
+            child: Text(
+              'Tasks',
+              style: GoogleFonts.montserratAlternates(
+                  textStyle: TextStyle(
+                fontSize: 38,
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+              )),
             ),
-          )
+          ),
+          CircleAvatar(
+            backgroundColor: Colors.transparent,
+            radius: 28,
+            backgroundImage: FirebaseAuth.instance.currentUser.photoURL != null
+                ? NetworkImage(FirebaseAuth.instance.currentUser.photoURL)
+                : AssetImage('assets/icon.png'),
+          ),
         ],
       ),
     );
@@ -55,15 +53,14 @@ class Topbar extends StatelessWidget {
 }
 
 // Middle Body -----------------------------------------------------------------
-class MiddleBody extends StatelessWidget {
-  const MiddleBody({
+class EmptyBody extends StatelessWidget {
+  const EmptyBody({
     Key key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-        child: Container(
+    return Container(
       color: Colors.white,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -77,7 +74,7 @@ class MiddleBody extends StatelessWidget {
           )
         ],
       ),
-    ));
+    );
   }
 }
 
@@ -93,49 +90,12 @@ class BottomBar extends StatelessWidget {
   final double width;
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(left: 16, right: 16, bottom: 16),
-      height: height * 0.1,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          StyleButton(
-              width: width * 0.2, height: height * 0.07, child: Icon(Icons.settings, size: 35)),
-          StyleButton(
-              width: width * 0.7,
-              height: height * 0.07,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        maxLines: 1,
-                        decoration:
-                            InputDecoration(border: InputBorder.none, hintText: 'Write A New Task'),
-                        style: GoogleFonts.montserrat(
-                            textStyle: TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 18, color: Colors.black)),
-                      ),
-                    ),
-                    Icon(
-                      Icons.add,
-                      size: 35,
-                    )
-                  ],
-                ),
-              ))
-        ],
-      ),
-    );
+    return Container();
   }
 }
 
 // Button Shell ----------------------------------------------------------------
-class StyleButton extends StatelessWidget {
+class StyleButton extends StatefulWidget {
   const StyleButton({
     Key key,
     @required this.width,
@@ -146,31 +106,86 @@ class StyleButton extends StatelessWidget {
   final double width;
   final double height;
   final Widget child;
+
+  @override
+  _StyleButtonState createState() => _StyleButtonState();
+}
+
+class _StyleButtonState extends State<StyleButton> {
+  double x = 3;
+  double y = 3;
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black,
-            offset: Offset(
-              3, // Move to right 10  horizontally
-              3, // Move to bottom 10 Vertically
+    return GestureDetector(
+      onTapDown: (down) {
+        setState(() {
+          x = 1;
+          y = 1;
+        });
+      },
+      onTapUp: (up) {
+        setState(() {
+          x = 3;
+          y = 3;
+        });
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black,
+              offset: Offset(
+                x, // Move to right 10  horizontally
+                y, // Move to bottom 10 Vertically
+              ),
             ),
-          ),
-        ],
-        border: Border(
-          top: BorderSide(width: 3.0, color: Colors.black),
-          left: BorderSide(width: 3.0, color: Colors.black),
-          right: BorderSide(width: 3.0, color: Colors.black),
-          bottom: BorderSide(width: 3.0, color: Colors.black),
+          ],
+          border: Border.all(width: 3),
+          borderRadius: BorderRadius.all(Radius.circular(20)),
         ),
-        borderRadius: BorderRadius.all(Radius.circular(20)),
+        width: widget.width,
+        height: widget.height,
+        child: widget.child,
       ),
-      width: width,
-      height: height,
-      child: child,
+    );
+  }
+}
+
+class Taskpill extends StatelessWidget {
+  const Taskpill({
+    Key key,
+    @required this.height,
+    @required this.width,
+    @required this.text,
+  }) : super(key: key);
+
+  final double height;
+  final double width;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.black,
+          border: Border.all(width: 3),
+          borderRadius: BorderRadius.all(Radius.circular(20)),
+        ),
+        height: height * 0.08,
+        width: width * 0.9,
+        child: Center(
+          child: Text(
+            text,
+            style: GoogleFonts.montserrat(
+                fontSize: 20, color: Colors.white, fontWeight: FontWeight.w400),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ),
     );
   }
 }
